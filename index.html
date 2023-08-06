@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Contact Management App</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.26.0/axios.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.1/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+  <style>
+    /* Animation using @keyframes and @layer (Tailwind CSS 2.2+ required) */
+    @keyframes fade-in-up {
+      0% {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slide-up {
+      0% {
+        transform: translateY(0);
+      }
+      100% {
+        transform: translateY(-100%);
+      }
+    }
+
+    .animate-slide-up {
+      animation: slide-up 2s forwards;
+    }
+    
+  </style>
+</head>
+<!--intro-page-->
+<body class="bg-gray-100">
+  <div class="intro-page bg-blue-500 h-screen flex items-center justify-center fixed inset-0 transition-opacity" id="introPage">
+    <h1 class="text-4xl font-bold text-white animate-fade-in-up" id="introHeading">Contact Management App</h1>
+  </div>
+ 
+  <!--heading-->
+  <div class="bg-blue-500 p-4 text-white text-center">
+    <h1 class="text-2xl font-bold">Contact Management App</h1>
+  </div>
+  <!--Contact Page-->
+  <div class="contact-page" id="contactPage">
+    <div class="fixed bottom-6 right-6">
+      <button class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-full" id="addContactBtn">
+        <span class="text-2xl">+</span>
+      </button>
+    </div>
+    <div id="contactsList" class="mt-2 ml-2 grid md:grid-cols-4"></div>
+    <div class="flex justify-center items-center h-screen">
+      <img id="emptyBoxImage" src="empty-box.png" alt="Empty Box" class="hidden">
+    </div>
+  </div>
+  <!--Charts and Map Page-->
+   <div id="chartsPage" class="charts-page hidden container mx-auto p-4">
+    <h1 class="text-2xl font-bold mb-4">Charts and Graphs</h1>
+    <div class="mb-4">
+      <h2 class="text-xl font-semibold mb-2">Cases Fluctuation</h2>
+      <canvas id="lineChart"></canvas>
+    </div>
+    <div class="mb-4">
+      <h2 class="text-xl font-semibold mb-2">Map</h2>
+      <div id="map" class="h-96 w-full"></div>
+    </div>
+  </div>
+
+  <!--Menu-Icon-->    
+
+      <div class="fixed top-4 left-4">
+      <button id="menu-icon" aria-label="menu-icon" class="bg-blue-500 hover:bg-blue-800 text-white font-bold py-2 px-4 rounded-full flex flex-col">
+        <span class="h-1 w-1 bg-white rounded-full mb-1"></span>
+        <span class="h-1 w-1 bg-white rounded-full mb-1"></span>
+        <span class="h-1 w-1 bg-white rounded-full"></span>
+      </button>
+    </div>
+  
+    <!-- Side menu -->
+    <div id="sidebar" class="sidebar hidden bg-gray-800 text-white fixed top-0 bottom-0 left-0 p-4">
+      <h2 class="text-lg font-bold mb-4">DashBoard</h2>
+      <ul>
+        <li class="mb-2">
+          <a href="#" id="contactBtn" class="text-blue-300">Contacts</a>
+        </li>
+        <li>
+          <a href="#" id="chartsBtn" class="text-blue-300">Charts and Maps</a>
+        </li>
+      </ul>
+    </div>
+
+  <!-- Overlay -->
+  <div id="overlay" class="overlay hidden fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center">
+    <div class="bg-white p-4 rounded-lg w-96">
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="firstName">First Name</label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="firstName" type="text" placeholder="First Name">
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2" for="lastName">Last Name</label>
+        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="lastName" type="text" placeholder="Last Name">
+      </div>
+      <div class="mb-4">
+        <label class="block text-gray-700 text-sm font-bold mb-2">Status</label>
+        <div class="flex items-center">
+          <input type="radio" id="active" name="status" value="active" class="mr-2" checked>
+          <label for="active">Active</label>
+        </div>
+        <div class="flex items-center">
+          <input type="radio" id="inactive" name="status" value="inactive" class="mr-2">
+          <label for="inactive">Inactive</label>
+        </div>
+      </div>
+      <div class="flex justify-end">
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mr-2" id="saveBtn">Save</button>
+        <button class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded" id="closeBtn">Close</button>
+      </div>
+    </div>
+  </div>
+  <!--Script for Contact page screen-->
+  <script src="https://cdn.jsdelivr.net/npm/redux@4.1.1/dist/redux.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/redux-thunk@2.3.0/dist/redux-thunk.min.js"></script>
+  <script src="script.js"></script>
+  <!--Script for Charts page Screen-->
+  <script src="chart.js"></script>
+  
+</body>
+</html>
